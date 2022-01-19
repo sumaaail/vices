@@ -1,4 +1,6 @@
+/* Default values for controller config parameters */
 {
+    // Position and Orientation controller
     "position_orientation":
     {
         "control_range_ori": 0.2,

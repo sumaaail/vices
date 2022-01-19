@@ -7,12 +7,12 @@ interface.
 import numpy as np
 from gym import spaces
 from robosuite.wrappers import Wrapper
-
+from tensorboardX import SummaryWriter as FileWriter
 
 class GymWrapper(Wrapper):
     env = None
 
-    def __init__(self, env, keys=None):
+    def __init__(self, env, logdir='', keys=None):
         """
         Initializes the Gym wrapper.
 
@@ -23,12 +23,13 @@ class GymWrapper(Wrapper):
                 observation dictionary. Defaults to robot-state and object-state.
         """
         self.env = env
-
+        self.episode_reward = 0.0
+        self.total_steps = 0
         if keys is None:
             assert self.env.use_object_obs, "Object observations need to be enabled."
             keys = ["robot-state", "object-state"]
         self.keys = keys
-
+        self.writer = FileWriter(logdir)
         # set up observation and action spaces
         flat_ob = self._flatten_obs(self.env.reset(), verbose=True)
         self.obs_dim = flat_ob.size
@@ -37,6 +38,7 @@ class GymWrapper(Wrapper):
         self.observation_space = spaces.Box(low=low, high=high)
         low, high = self.env.action_spec
         self.action_space = spaces.Box(low=low, high=high)
+        print('obs_dim :', self.obs_dim, self.action_space.shape[0])
 
     def _flatten_obs(self, obs_dict, verbose=False):
         """
@@ -59,4 +61,9 @@ class GymWrapper(Wrapper):
 
     def step(self, action):
         ob_dict, reward, done, info = self.env.step(action)
+        self.total_steps += 1
+        self.episode_reward += reward
+        if done:
+            self.writer.add_scalar('train_episode_reward', self.episode_reward, self.total_steps)
+            self.episode_reward = 0
         return self._flatten_obs(ob_dict), reward, done, info

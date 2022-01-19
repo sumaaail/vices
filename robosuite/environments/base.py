@@ -160,9 +160,7 @@ class MujocoEnv(metaclass=EnvMeta):
         # create visualization screen or renderer
         if self.has_renderer and self.viewer is None:
             self.viewer = MujocoPyRenderer(self.sim)
-            self.viewer.viewer.vopt.geomgroup[0] = (
-                1 if self.render_collision_mesh else 0
-            )
+            self.viewer.viewer.vopt.geomgroup[0] = 1 if self.render_collision_mesh else 0
             self.viewer.viewer.vopt.geomgroup[1] = 1 if self.render_visual_mesh else 0
 
             # hiding the overlay speeds up rendering significantly
@@ -170,7 +168,7 @@ class MujocoEnv(metaclass=EnvMeta):
 
         elif self.has_offscreen_renderer:
             if self.sim._render_context_offscreen is None:
-                render_context = MjRenderContextOffscreen(self.sim)
+                render_context = MjRenderContextOffscreen(self.sim, device_id=0)
                 self.sim.add_render_context(render_context)
             self.sim._render_context_offscreen.vopt.geomgroup[0] = (
                 1 if self.render_collision_mesh else 0
